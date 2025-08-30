@@ -1,0 +1,164 @@
+﻿@{
+    ViewData["Title"] = "Invoice Entry";
+    var header = (InvoiceApp.Models.TrInvoice?)ViewData["header"];
+}
+
+<div class="container my-4">
+    <div class="d-flex justify-content-end mb-3">
+        <div>
+            <a class="btn btn-success me-2" asp-action="Create">Create New Invoice</a>
+            @if (header != null)
+            {
+                <a class="btn btn-warning" asp-action="Edit" asp-route-invoiceNo="@header.InvoiceNo">Edit Invoice</a>
+            }
+        </div>
+    </div>
+
+    <!-- No Invoice -->
+    <div class="d-flex align-items-center mb-3">
+        <form asp-action="Index" method="get" class="d-flex">
+            <label for="noInvoice" class="me-2 fw-bold">No Invoice</label>
+            <input type="text" name="invoiceNo" id="noInvoice" value="@ViewData["invoiceNo"]" class="form-control me-2"
+                style="max-width: 200px;">
+            <button type="submit" class="btn btn-primary">View</button>
+        </form>
+    </div>
+
+    <!-- Invoice Detail Box -->
+    <div class="border rounded p-3 mb-4">
+        <h5 class="text-primary mb-3">Invoice Detail</h5>
+        <div class="row">
+            <!-- Left side -->
+            <div class="col-md-6">
+                <div class="mb-3 row">
+                    <label for="invoiceDate" class="col-sm-4 col-form-label">Invoice Date</label>
+                    <div class="col-sm-8">
+                        <input type="date" id="invoiceDate" class="form-control"
+                            value="@header?.InvoiceDate.ToString("yyyy-MM-dd")" />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="toAddress" class="form-label">To</label>
+                    <textarea id="toAddress" class="form-control" rows="4">@header?.InvoiceTo</textarea>
+                </div>
+                <div class="mb-3 row align-items-center">
+                    <label for="salesName" class="col-sm-4 col-form-label">Sales Name</label>
+                    <div class="col-sm-6">
+                        <select asp-items="ViewBag.Sales" class="form-select" id="salesName" name="SalesID"></select>
+                    </div>
+                </div>
+                <div class="mb-3 row align-items-center">
+                    <label for="courier" class="col-sm-4 col-form-label">Courier</label>
+                    <div class="col-sm-6">
+                        <select asp-items="ViewBag.Couriers" class="form-select" id="courier" name="CourierID"></select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right side -->
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="shipTo" class="form-label">Ship To</label>
+                    <textarea id="shipTo" class="form-control" rows="6">@header?.ShipTo</textarea>
+                </div>
+                <div class="mb-3 row align-items-center">
+                    <label for="paymentType" class="col-sm-4 col-form-label">Payment Type</label>
+                    <div class="col-sm-8">
+                        <select asp-items="ViewBag.Payments" class="form-select" id="paymentType"
+                            name="PaymentType"></select>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Table -->
+    <table class="table table-bordered text-center">
+        <thead class="table-light align-middle">
+            <tr>
+                <th scope="col">Item</th>
+                <th scope="col">Weight(Kg)</th>
+                <th scope="col">QTY</th>
+                <th scope="col">Unit Price</th>
+                <th scope="col">Total</th>
+                <th scope="col">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                var invoiceList = ViewData["invoiceList"] as List<InvoiceApp.Models.InvoiceViewModel>;
+            }
+            @if (invoiceList != null && invoiceList.Count > 0)
+            {
+                @foreach (var item in invoiceList)
+                {
+                    <tr>
+                        <td>@item.ProductName</td>
+                        <td>@item.Weight</td>
+                        <td>@item.Qty</td>
+                        <td>@item.Price</td>
+                        <td>@item.Total</td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm btn-delete" data-invoiceno="@item.InvoiceNo"
+                                data-productid="@item.ProductID">
+                                Delete</button>
+                        </td>
+
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <!-- Summary and fee -->
+    <div class="d-flex justify-content-end me-3 mb-4">
+        <table class="table table-borderless">
+            <tbody>
+                <tr>
+                    <th>Sub Total</th>
+                    <td class="text-end">@ViewData["subTotal"]</td>
+                </tr>
+                <tr>
+                    <th>Courier Fee
+                        <code class="text-danger fst-italic small"> (ItCourierFee * Weight * Qty)</code>
+                    </th>
+
+                    <td class="text-end text-danger">@ViewData["courierFee"]</td>
+                </tr>
+                <tr>
+                    <th>Total</th>
+                    <td class="text-end fw-bold">@ViewData["grandTotal"]</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.btn-delete').click(function () {
+                if (!confirm('Yakin hapus item ini?')) return;
+
+                var btn = $(this);
+                var invoiceNo = btn.data('invoiceno');
+                var productID = btn.data('productid');
+
+                $.ajax({
+                    url: '@Url.Action("Delete")',
+                    type: 'POST',
+                    data: { invoiceNo: invoiceNo, productID: productID },
+                    success: function () {
+                        // Hapus baris tabel
+                        btn.closest('tr').remove();
+                    },
+                    error: function () {
+                        alert('Gagal menghapus item.');
+                    }
+                });
+            });
+        });
+    </script>
+}

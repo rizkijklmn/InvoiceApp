@@ -1,0 +1,67 @@
+@model InvoiceApp.Models.TrInvoice
+@{
+    ViewData["Title"] = "Edit Invoice";
+    var products = ViewBag.Products as SelectList;
+    var details = ViewData["details"] as List<InvoiceApp.Models.TrInvoiceDetail>;
+}
+
+<h3>Edit Invoice</h3>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="InvoiceNo" />
+
+    <div class="mb-3">
+        <label>Invoice Date</label>
+        <input asp-for="InvoiceDate" type="date" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label>Invoice To</label>
+        <textarea asp-for="InvoiceTo" class="form-control"></textarea>
+    </div>
+    <div class="mb-3">
+        <label>Ship To</label>
+        <textarea asp-for="ShipTo" class="form-control"></textarea>
+    </div>
+    <div class="mb-3">
+        <label>Sales</label>
+        <select asp-for="SalesID" asp-items="ViewBag.Sales" class="form-select"></select>
+    </div>
+    <div class="mb-3">
+        <label>Courier</label>
+        <select asp-for="CourierID" asp-items="ViewBag.Couriers" class="form-select"></select>
+    </div>
+    <div class="mb-3">
+        <label>Payment</label>
+        <select asp-for="PaymentType" asp-items="ViewBag.Payments" class="form-select"></select>
+    </div>
+
+    <!-- Produk Detail -->
+    <h5>Products</h5>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Qty</th>
+            </tr>
+        </thead>
+        <tbody id="productTable">
+            @if (details != null)
+            {
+                for (int i = 0; i < details.Count; i++)
+                {
+                    <tr>
+                        <td>
+                            <select name="details[@i].ProductID" class="form-select"
+                                    asp-items="products" asp-for="@details[i].ProductID"></select>
+                        </td>
+                        <td>
+                            <input type="number" name="details[@i].Qty" class="form-control" value="@details[i].Qty" />
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-warning">Update</button>
+</form>
